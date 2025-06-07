@@ -20,11 +20,6 @@ spec:
           image: grafana/grafana:10.2.3
           ports:
             - containerPort: 3000
-          env:
-            - name: GF_AUTH_LDAP_ENABLED
-              value: "true"
-            - name: GF_AUTH_LDAP_CONFIG_FILE
-              value: "/etc/grafana/ldap.toml"
           volumeMounts:
             - name: storage
               mountPath: /var/lib/grafana
@@ -33,9 +28,6 @@ spec:
             - name: config
               mountPath: /etc/grafana/grafana.ini
               subPath: grafana.ini
-            - name: ldap-config
-              mountPath: /etc/grafana/ldap.toml
-              subPath: ldap.toml
           securityContext:
             runAsUser: 0
       volumes:
@@ -48,6 +40,3 @@ spec:
         - name: config
           configMap:
             name: grafana-config
-        - name: ldap-config
-          configMap:
-            name: grafana-ldap-config
