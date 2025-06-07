@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:10.2.3
+          ports:
+            - containerPort: 3000
+          env:
+            - name: GF_AUTH_LDAP_ENABLED
+              value: "true"
+            - name: GF_AUTH_LDAP_CONFIG_FILE
+              value: "/etc/grafana/ldap.toml"
+          volumeMounts:
+            - name: storage
+              mountPath: /var/lib/grafana
+            - name: datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: config
+              mountPath: /etc/grafana/grafana.ini
+              subPath: grafana.ini
+            - name: ldap-config
+              mountPath: /etc/grafana/ldap.toml
+              subPath: ldap.toml
+          securityContext:
+            runAsUser: 0
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: grafana-pvc
+        - name: datasources
+          configMap:
+            name: grafana-datasources
+        - name: config
+          configMap:
+            name: grafana-config
+        - name: ldap-config
+          configMap:
+            name: grafana-ldap-config
