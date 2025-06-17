@@ -1,10 +1,18 @@
-name: Mi workflow
+name: Test K8s Connection
+
 on:
   workflow_dispatch:
 
 jobs:
-  saludo:
+  check-nodes:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Decir hola
-        run: echo "¡Hola, esta es mi primera GitHub Action!!!!!!!!!!"
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configurar kubeconfig
+        run: echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+
+      - name: Listar nodos del clúster
+        run: kubectl get nodes
