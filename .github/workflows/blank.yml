@@ -1,5 +1,11 @@
 name: Hola Mundo
 
 on:
-  push:
   workflow_dispatch:
+
+jobs:
+  saludo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decir hola
+        run: echo "¡Hola, esta es mi primera GitHub Action!"
