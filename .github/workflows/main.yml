@@ -1,0 +1,33 @@
+name: Desplegar Aplicación Flask en K8s
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+
+      - name: Instalar kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configurar kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Crear namespace si no existe
+        run: kubectl apply -f k8s/namespace.yaml
+
+      - name: Desplegar aplicación
+        run: kubectl apply -f k8s/deployment.yaml
+
+      - name: Crear servicio
+        run: kubectl apply -f k8s/service.yaml
+
+      - name: Ver pods
+        run: kubectl get pods -n aplicacion -o wide
