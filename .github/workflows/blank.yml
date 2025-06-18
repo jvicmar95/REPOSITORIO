@@ -19,3 +19,6 @@ jobs:
 
       - name: Listar nodos del clúster
         run: kubectl get nodes
+
+      - name: Listar pods (output amplio)
+        run: kubectl get pods -A -o wide
