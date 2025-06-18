@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aplicacion
+  namespace: aplicacion
+  labels:
+    app: aplicacion
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aplicacion
+  template:
+    metadata:
+      labels:
+        app: aplicacion
+    spec:
+      containers:
+        - name: flask
+          image: jvicmar95/aplicacionjorge:v14
+          ports:
+            - containerPort: 5000
+          volumeMounts:
+            - name: datos
+              mountPath: /app/data
+      volumes:
+        - name: datos
+          persistentVolumeClaim:
+            claimName: aplicacion-pvc

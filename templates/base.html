@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Mi Aplicación{% endblock %}</title>
+</head>
+<body>
+    <header style="background:#333; color:white; padding:10px 20px;">
+        <span>✅ Mi Aplicación de Tareas</span>
+        {% if session['usuario'] %}
+            <span style="float:right;">
+                Hola, {{ session['usuario'] }} |
+                <a href="{{ url_for('logout') }}" style="color:white;">Cerrar sesión</a>
+            </span>
+        {% endif %}
+    </header>
+    <main style="padding: 20px;">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

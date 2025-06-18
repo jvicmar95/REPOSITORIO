@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mis Tareas</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  <script>
+    function confirmarBorrado() {
+      return confirm("¿Estás seguro de que quieres eliminar esta tarea?");
+    }
+
+    function mostrarFormularioEdicion(id) {
+      document.getElementById('texto-' + id).style.display = 'none';
+      document.getElementById('form-editar-' + id).style.display = 'inline-flex';
+    }
+
+    function cancelarEdicion(id) {
+      document.getElementById('form-editar-' + id).style.display = 'none';
+      document.getElementById('texto-' + id).style.display = 'inline-block';
+    }
+  </script>
+  <style>
+    .titulo-editable {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.5rem;
+    }
+    .titulo-editable .lapiz-btn {
+      background: none;
+      border: none;
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 0;
+      margin-left: 0.3rem;
+    }
+    .etiqueta-form {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.4rem;
+    }
+    .etiqueta {
+      font-size: 0.85rem;
+      font-weight: bold;
+      border-radius: 4px;
+      padding: 4px 10px;
+      display: inline-block;
+    }
+    .etiqueta-gsit    { background-color: #ffeb3b; color: #000; }
+    .etiqueta-delta   { background-color: #2e7d32; color: #fff; }
+    .etiqueta-cmpe    { background-color: #81c784; color: #000; }
+    .etiqueta-tc      { background-color: #a1887f; color: #fff; }
+    .etiqueta-viewnext { background-color: #4fc3f7; color: #000; }
+
+    .etiqueta-form select {
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .etiqueta-form button {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: none;
+      background-color: #fdd835;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .etiqueta-form button:hover {
+      background-color: #fbc02d;
+    }
+
+    .usuario-bar {
+      display: flex;
+      justify-content: flex-end;
+      padding: 0 20px 10px 20px;
+      font-size: 0.9rem;
+    }
+
+    .usuario-bar a {
+      margin-left: 10px;
+      text-decoration: none;
+      font-weight: bold;
+      color: #ffffff;
+    }
+
+    .usuario-bar a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <a href="{{ url_for('home') }}" class="nav-link">Home</a>
+      <a href="{{ url_for('index') }}" class="nav-link">Tareas</a>
+      <a href="{{ url_for('calendario') }}" class="nav-link">Calendario</a>
+    </nav>
+    {% if session['usuario'] %}
+    <div class="usuario-bar">
+      Bienvenido, {{ session['usuario'] }} |
+      <a href="{{ url_for('logout') }}">Cerrar sesión</a>
+    </div>
+    {% endif %}
+    <h1>📝 Lista de Tareas</h1>
+    <p>¡Organiza tu día a día!</p>
+    <div class="top-bar">
+      <form action="{{ url_for('add') }}" method="POST" class="add-tarea-form">
+        <input type="text" name="tarea" placeholder="Escribe una nueva tarea..." required />
+        <select name="etiqueta" required>
+          <option value="" disabled selected>Etiqueta</option>
+          <option value="GSIT">GSIT</option>
+          <option value="DELTA">DELTA</option>
+          <option value="CMPE">CMPE</option>
+          <option value="TC">TC</option>
+          <option value="VIEWNEXT">VIEWNEXT</option>
+        </select>
+        <button type="submit">Agregar</button>
+      </form>
+      <form action="{{ url_for('crear_backup') }}" method="POST" style="margin-left: 1rem;">
+        <button type="submit" class="btn-backup">Crear Backup</button>
+      </form>
+      <div class="backups-list">
+        <h4>Backups guardados</h4>
+        <ul>
+          {% for backup in backups %}
+          <li><a href="{{ url_for('descargar_backup', nombre_backup=backup) }}" target="_blank">{{ backup }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="kanban">
+      {% for columna, tareas in [('Pendientes', pendientes), ('En progreso', progreso), ('Completadas', completadas)] %}
+      <section class="kanban-col">
+        <h2>{{ columna }} ({{ tareas | length }})</h2>
+        {% for tarea in tareas %}
+        <div class="card{% if tarea.fecha_limite %}{% set dias = (tarea.fecha_limite | to_datetime('%Y-%m-%d')).date() - now.date() %}{% if dias.days < 0 %} vencida{% elif dias.days <= 2 %} urgente{% endif %}{% endif %}">
+          <div class="titulo-editable">
+            <strong id="texto-{{ tarea.id }}">{{ tarea.texto }}</strong>
+            <form id="form-editar-{{ tarea.id }}" action="{{ url_for('edit', tarea_id=tarea.id) }}" method="POST" style="display: none;">
+              <input type="text" name="nuevo_texto" value="{{ tarea.texto }}" required />
+              <button type="submit">✔</button>
+              <button type="button" onclick="cancelarEdicion({{ tarea.id }})">✖</button>
+            </form>
+            <button class="lapiz-btn" onclick="mostrarFormularioEdicion({{ tarea.id }})">✏️</button>
+
+            {% if tarea.etiqueta %}
+            <span class="etiqueta etiqueta-{{ tarea.etiqueta|lower }}">{{ tarea.etiqueta }}</span>
+            <form action="{{ url_for('etiqueta', tarea_id=tarea.id) }}" method="POST" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+              <select name="nueva_etiqueta" required style="font-size: 0.75rem;">
+                <option value="" disabled selected>Etiqueta</option>
+                <option value="GSIT">GSIT</option>
+                <option value="DELTA">DELTA</option>
+                <option value="CMPE">CMPE</option>
+                <option value="TC">TC</option>
+                <option value="VIEWNEXT">VIEWNEXT</option>
+              </select>
+              <button type="submit" style="font-size: 0.75rem;">Cambiar</button>
+            </form>
+            {% endif %}
+          </div>
+
+          {% if tarea.fecha_limite %}
+            <small>📌 Límite: {{ tarea.fecha_limite }}</small>
+          {% endif %}
+
+          <div class="acciones">
+            {% if tarea.estado != 'pendiente' %}
+              <a href="{{ url_for('mover', tarea_id=tarea.id, nuevo_estado='pendiente') }}">🔄 A pendiente</a>
+            {% endif %}
+            {% if tarea.estado != 'progreso' %}
+              <a href="{{ url_for('mover', tarea_id=tarea.id, nuevo_estado='progreso') }}">🛠 A progreso</a>
+            {% endif %}
+            {% if tarea.estado != 'completada' %}
+              <a href="{{ url_for('mover', tarea_id=tarea.id, nuevo_estado='completada') }}">✅ A completada</a>
+            {% endif %}
+          </div>
+
+          <form action="{{ url_for('nota', tarea_id=tarea.id) }}" method="POST">
+            <textarea name="nota" rows="2" style="width: 100%;" placeholder="Escribe una nota...">{{ tarea.nota }}</textarea>
+            <button type="submit">📝 Guardar nota</button>
+          </form>
+
+          <form action="{{ url_for('fecha', tarea_id=tarea.id) }}" method="POST" style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="date" name="fecha_limite" value="{{ tarea.fecha_limite }}" style="flex-grow: 1;" />
+            <button type="submit" style="background-color: #fbc02d; font-weight: bold; cursor: pointer;">📅 Guardar fecha</button>
+          </form>
+
+          <a href="{{ url_for('delete', tarea_id=tarea.id) }}" class="borrar" onclick="return confirmarBorrado();">
+            <span class="icono">✖</span> Borrar
+          </a>
+        </div>
+        {% endfor %}
+      </section>
+      {% endfor %}
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2025 Jorge Vicente</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,4 @@
+resources:
+  - deployment-aplicacion.yaml
+  - service-aplicacion.yaml
+  - pvc-aplicacion.yaml

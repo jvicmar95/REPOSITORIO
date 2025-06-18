@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Home</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <a href="{{ url_for('home') }}" class="nav-link">Home</a>
+      <a href="{{ url_for('index') }}" class="nav-link">Tareas</a>
+      <a href="{{ url_for('calendario') }}" class="nav-link">Calendario</a>
+    </nav>
+    <h1>Bienvenido a la página Home</h1>
+    <p>Hola, esta es una página simple para la sección Home.</p>
+  </header>
+</body>
+</html>

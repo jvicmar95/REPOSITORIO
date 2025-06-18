@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calendario de Tareas</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    body {
+      background: #f3f5f9;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .calendar-container {
+      max-width: 1500px;
+      margin: 2rem auto;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+    }
+
+    .calendar-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .calendar-nav a {
+      font-size: 2rem;
+      text-decoration: none;
+      color: #1a2e55;
+      padding: 0 1rem;
+    }
+
+    .calendar-title {
+      font-size: 2.4rem;
+      font-weight: bold;
+      color: #1a2e55;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+    }
+
+.btn-hoy {
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  background-color: #ebf18b;
+  color: #1a2e55;
+  border: 1px solid #999;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  line-height: 1.2;
+  vertical-align: middle;
+  transition: all 0.2s ease;
+}
+
+.btn-hoy:hover {
+  background-color: #e0ee78;
+  border-color: #555;
+  color: #2a4600;
+}
+.btn-hoy {
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  background-color: #ebf18b;
+  color: #1a2e55;
+  border: 1px solid #999;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  line-height: 1.2;
+  vertical-align: middle;
+  transition: all 0.2s ease;
+}
+
+.btn-hoy:hover {
+  background-color: #e0ee78;
+  border-color: #555;
+  color: #2a4600;
+}
+
+    table.calendar {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .calendar th {
+      background-color: #fdd835;
+      padding: 1rem 0;
+      font-weight: bold;
+      color: #1a2e55;
+      font-size: 1.1rem;
+    }
+
+    .calendar td {
+      border: 1px solid #ddd;
+      vertical-align: top;
+      height: 120px;
+      padding: 0.5rem;
+      font-size: 0.95rem;
+      color: #1a2e55;
+    }
+
+    .calendar .day-number {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .calendar .evento {
+      background-color: #bbdefb;
+      border-radius: 5px;
+      padding: 2px 5px;
+      margin-top: 3px;
+      font-size: 0.85rem;
+      color: #0d47a1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .calendar td.hoy {
+      background-color: #fffde7;
+      box-shadow: inset 0 0 0 2px #fdd835;
+    }
+
+    @media (max-width: 768px) {
+      .calendar td {
+        height: 100px;
+        font-size: 0.85rem;
+      }
+
+      .calendar-title {
+        font-size: 2rem;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+
+      .calendar-nav a {
+        font-size: 1.5rem;
+      }
+
+      .btn-hoy {
+        font-size: 0.8rem;
+        padding: 3px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <a href="{{ url_for('home') }}" class="nav-link">Home</a>
+      <a href="{{ url_for('index') }}" class="nav-link">Tareas</a>
+      <a href="{{ url_for('calendario') }}" class="nav-link">Calendario</a>
+    </nav>
+  </header>
+
+  <div class="calendar-container">
+    <div class="calendar-nav">
+      <a href="{{ url_for('calendario', mes=mes_anterior, anio=anio_anterior) }}">«</a>
+      <div class="calendar-title">
+        📅 {{ nombre_mes }} {{ anio }}
+        <a href="{{ url_for('calendario') }}" class="btn-hoy">Hoy</a>
+      </div>
+      <a href="{{ url_for('calendario', mes=mes_siguiente, anio=anio_siguiente) }}">»</a>
+    </div>
+
+    <table class="calendar">
+      <thead>
+        <tr>
+          {% for dia in dias_semana %}
+            <th>{{ dia }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for semana in calendario %}
+          <tr>
+            {% for dia in semana %}
+              <td class="{% if dia == fecha_hoy %}hoy{% endif %}">
+                {% if dia.month == mes %}
+                  <span class="day-number">{{ dia.day }}</span>
+                  {% for tarea in eventos_por_dia.get(dia.isoformat(), []) %}
+                    <div class="evento">{{ tarea }}</div>
+                  {% endfor %}
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
