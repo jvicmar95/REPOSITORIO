@@ -1,24 +1,21 @@
-name: Test K8s Connection
+name: Build and Push Docker Image
 
 on:
   workflow_dispatch:
 
 jobs:
-  check-nodes:
+  docker:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
+      - name: Checkout código
+        uses: actions/checkout@v3
 
-      - name: Configurar kubeconfig
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
-          chmod 600 $HOME/.kube/config
+      - name: Login en Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Listar nodos del clúster
-        run: kubectl get nodes
+      - name: Construir imagen desde carpeta APLICACION
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/flask-k8s-app:latest ./APLICACION
 
-      - name: Listar pods (output amplio)
-        run: kubectl get pods -A -o wide
+      - name: Subir imagen a Docker Hub
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/flask-k8s-app:latest
